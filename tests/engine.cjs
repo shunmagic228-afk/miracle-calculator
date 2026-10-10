@@ -1,0 +1,8 @@
+const assert=require('node:assert/strict'),{Calculator,correction,stamp}=require('../engine.js');
+function input(c,keys){keys.forEach(k=>c.key(k));}
+const time=new Date(2026,9,9,12,30,40).getTime();
+let c=new Calculator(()=>time);input(c,['5','2','×','3','1','×','2','1','=']);assert.equal(c.entry,'33852');assert.equal(c.phase,'normal');
+c.reset();c.key('%');assert.equal(c.magic,true);input(c,['5','2','×','3','1','×','2','1','=']);assert.equal(c.entry,'33852');assert.equal(c.target,'10091231');assert.equal(c.forced.op,'+');assert.equal(c.forced.digits,'10057379');c.key('AC');assert.equal(c.tokens[1],'+');for(const k of ['=','%','back','9','÷','AC','±','.'])c.key(k);assert.equal(c.entry,'10057379');c.key('=');assert.equal(c.entry,'10091231');assert.equal(c.phase,'done');c.key('AC');assert.equal(c.pristine,true);assert.equal(c.magic,true);c.key('%');assert.equal(c.magic,false);
+for(const answer of ['20000000','-45','3.25','0.333333333333','1e-7','10091231']){const f=correction(answer,'10091231');const n=Number(answer)+(f.op==='+'?1:-1)*Number(f.digits);assert(Math.abs(n-10091231)<1e-7);}
+c=new Calculator(()=>new Date(2026,11,31,23,59,55).getTime());c.delay=10;c.key('%');input(c,['9','=']);assert.equal(c.target,'01010000');while(c.index<=c.forced.digits.length)c.key('=');c.key('=');assert.equal(c.entry,'01010000');
+c=new Calculator();input(c,['2','+','3','×','4','=']);assert.equal(c.entry,'14');c.reset();input(c,['1','÷','0','=']);assert.equal(c.entry,'エラー');c.key('AC');assert.equal(c.entry,'0');console.log('Passed: free calculation, mode toggle, forced taps, early equals, subtraction, decimals, year rollover and reset');
