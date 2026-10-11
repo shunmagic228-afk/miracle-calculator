@@ -1,4 +1,4 @@
-const $=id=>document.getElementById(id),calc=new Calculator();try{const d=Number(localStorage.getItem('delay'));if(d>=10&&d<=300&&d%10===0)calc.delay=d;}catch{}
+const $=id=>document.getElementById(id),calc=new Calculator();calc.magic=true;try{const d=Number(localStorage.getItem('delay'));if(d>=10&&d<=300&&d%10===0)calc.delay=d;}catch{}
 const slider=$('delay');slider.value=calc.delay;
 function updateDelay(){const n=Number(slider.value);calc.delay=n;const label=n<60?n+'秒後':Math.floor(n/60)+'分'+(n%60?n%60+'秒':'')+'後';$('delayvalue').textContent=label;slider.setAttribute('aria-valuetext',label);slider.style.setProperty('--progress',((n-10)/290*100)+'%');try{localStorage.setItem('delay',n);}catch{}}
 slider.addEventListener('input',updateDelay);updateDelay();
