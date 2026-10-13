@@ -1,10 +1,13 @@
-const $=id=>document.getElementById(id),calc=new Calculator();calc.magic=true;try{const d=Number(localStorage.getItem('delay'));if(d>=10&&d<=300&&d%10===0)calc.delay=d;}catch{}
+const $=id=>document.getElementById(id),calc=new Calculator();calc.magic=true;let peekMode=false;try{peekMode=localStorage.getItem('peekMode')==='true';}catch{}try{const d=Number(localStorage.getItem('delay'));if(d>=10&&d<=300&&d%10===0)calc.delay=d;}catch{}
 const slider=$('delay');slider.value=calc.delay;
 function updateDelay(){const n=Number(slider.value);calc.delay=n;const label=n<60?n+'秒後':Math.floor(n/60)+'分'+(n%60?n%60+'秒':'')+'後';$('delayvalue').textContent=label;slider.setAttribute('aria-valuetext',label);slider.style.setProperty('--progress',((n-10)/290*100)+'%');try{localStorage.setItem('delay',n);}catch{}}
-slider.addEventListener('input',updateDelay);updateDelay();
+slider.addEventListener('input',()=>{updateDelay();renderPeek();});updateDelay();
+const peekSelect=$('peekmode');peekSelect.value=peekMode?'peek':'normal';peekSelect.addEventListener('change',()=>{peekMode=peekSelect.value==='peek';try{localStorage.setItem('peekMode',String(peekMode));}catch{}renderPeek();});
+function renderPeek(){const el=$('timepeek');const show=peekMode&&calc.magic&&calc.phase==='normal'&&!calc.error;el.hidden=!show;el.textContent=show?calc.previewTarget.slice(-4):'';}
+setInterval(renderPeek,250);document.addEventListener('visibilitychange',renderPeek);window.addEventListener('pageshow',renderPeek);
 
 function fitDisplay(){const screen=$('display').parentElement;const available=screen.clientWidth-14;const base=Math.min(92,$('calculator').clientWidth*.185);for(const [id,max] of [['display',base],['expression',base*.45]]){const el=$(id);el.style.fontSize=max+'px';if(el.scrollWidth>available)el.style.fontSize=Math.max(20,max*available/el.scrollWidth)+'px';el.scrollLeft=el.scrollWidth;}}
-function render(){const state=calculatorDisplay(calc);$('display').textContent=state.main;$('expression').textContent=state.secondary;$('expression').hidden=!state.secondary;$('indicator').classList.toggle('on',calc.magic);$('forceindicator').hidden=!(calc.phase==='forcing'&&calc.forced&&Number.isFinite(Number(calc.target))&&/^[0-9]+(?:\.[0-9]+)?$/.test(calc.forced.digits));fitDisplay();}
+function render(){const state=calculatorDisplay(calc);$('display').textContent=state.main;$('expression').textContent=state.secondary;$('expression').hidden=!state.secondary;$('indicator').classList.toggle('on',calc.magic);$('forceindicator').hidden=!(calc.phase==='forcing'&&calc.forced&&Number.isFinite(Number(calc.target))&&/^[0-9]+(?:\.[0-9]+)?$/.test(calc.forced.digits));renderPeek();fitDisplay();}
 window.addEventListener('resize',fitDisplay);
 
 function press(k){calc.key(k);render();}document.querySelectorAll('[data-key]').forEach(b=>b.addEventListener('click',()=>press(b.dataset.key)));document.addEventListener('keydown',e=>{if($('panel').open)return;const map={'Enter':'=','Escape':'AC','Backspace':'back','*':'×','/':'÷','-':'−'};const k=map[e.key]||e.key;if('0123456789.+%='.includes(k)||Object.values(map).includes(k)){e.preventDefault();press(k);}});
