@@ -1,12 +1,12 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const {Calculator}=require('../engine.js');
+const {Calculator,normalizeFreeTarget}=require('../engine.js');
 const source=fs.readFileSync(require.resolve('../app.js'),'utf8').split('\nfunction fitDisplay')[0];
 const saved=new Map();
 function launch(blocked=false){
  const elements=new Map();
- const context={Calculator,localStorage:{getItem(k){if(blocked)throw Error('blocked');return saved.get(k)??null;},setItem(k,v){if(blocked)throw Error('blocked');saved.set(k,String(v));}},document:{getElementById(id){if(!elements.has(id))elements.set(id,{style:{setProperty(){}},setAttribute(){},addEventListener(){}});return elements.get(id);}}};
+ const context={Calculator,calculatorHelpers:{normalizeFreeTarget},window:{addEventListener(){}},setInterval(){},localStorage:{getItem(k){if(blocked)throw Error('blocked');return saved.get(k)??null;},setItem(k,v){if(blocked)throw Error('blocked');saved.set(k,String(v));}},document:{addEventListener(){},getElementById(id){if(!elements.has(id))elements.set(id,{style:{setProperty(){}},setAttribute(){},addEventListener(){}});return elements.get(id);}}};
  vm.createContext(context);vm.runInContext(source,context);
  return {run:code=>vm.runInContext(code,context),slider:elements.get('delay')};
 }
